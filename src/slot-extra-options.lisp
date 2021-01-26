@@ -53,10 +53,11 @@ CLASS."
          (mvbind (value action)
              (coalesce-options (name option) (type-of class) direct-slots)
            (unless (member action '(bind leave-unbound))
-             (error "`coalesce-options' for option ~A in slot ~A is expected to
-return (values <new value of the option> <'bind or 'leave-unbound>). Please,
-make sure that the function you passed in :coalesce-function (or
-`coalesce-options' if you specified it yourself) does that."
+             (error 'slot-extra-options-error "`coalesce-options' for option ~A
+in slot ~A is expected to return (values <new value of the option> <'bind or
+'leave-unbound>). Please, make sure that the function you passed in
+:coalesce-function (or `coalesce-options' if you specified it yourself) does
+that."
                     (name option) slot-name))
            (if (eql action 'bind)
                (setf (slot-value normal-slot (name option)) value)

@@ -47,17 +47,27 @@ duplicates. Lists only (unbound treated as NIL)."
            :test 'equal)
           'bind))
 
+(find-if #'null '(4 0 5)) 
+
 (defun coalesce-bound-only-once (option-name dslots)
-  "Ensure that only one bound value occurs in the whole inheritence line."
+  "Ensure that a value is bound only once in the whole inheritence line.
+Subclasses inherit that value (and cannot override it, getting an error)."
   (fbind ((option-boundp (rcurry 'slot-boundp option-name)))
-    (if (option-boundp (first dslots))
-        (progn
-          (error-on (find-if #'option-boundp (rest dslots))
-                    "The inheritence rule for ~A specifies that the value may
-only be bound once.  You are getting this error because one of the classes you
-are inheriting from has already bound this value or if you specified an
+    (let* ((inherited-value-slot (find-if #'option-boundp (rest dslots)))
+           (inherited-value (when inherited-value-slot
+                              (slot-value inherited-value-slot option-name))))
+      (cond ((option-boundp (first dslots))
+             (w- option-value (slot-value (first dslots) option-name)
+               (error-on*
+                (and inherited-value-slot
+                     (not (equal option-value inherited-value)))
+                'slot-extra-options-error
+                "The inheritence rule for ~A specifies that the value
+may only be bound once.  You are getting this error because one of the classes
+you are inheriting from has already bound this value or if you specified an
 :initform for this option in `def-extra-options-class' when defining this
-class."
-                    option-name)
-          (values (slot-value (first dslots) option-name) 'bind))
-        (values nil 'leave-unbound))))
+class, and the new value is different."
+                option-name)
+               (values option-value 'bind)))
+            (inherited-value-slot (values inherited-value 'bind))
+            (t (values nil 'leave-unbound))))))

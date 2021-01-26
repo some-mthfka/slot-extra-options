@@ -2,8 +2,11 @@
 
 (defpackage #:slot-extra-options
   (:use #:cl #:ut)
-  
+
   (:export
+   ;; error conditions
+   #:slot-extra-options-error
+   
    ;; coalesce
    #:coalesce-options
    #:coalesce-replace-or-inherit
