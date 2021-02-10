@@ -11,7 +11,7 @@
 
 ;; ** Slot Option
 
-(defclass/quick slot-option ()
+(defclass* slot-option ()
   ((name)
    (initform)
    (coalesce-function))

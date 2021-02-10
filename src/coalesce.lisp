@@ -20,10 +20,13 @@ METACLASS-NAME. Default behavior is `coalesce-replace-or-inherit'."
 
 ;; *** Specific strategies
 
+;; Note: `slot-exists-and-bound-p' is used and not `slot-boundp', because you
+;; can inherit from a standard class which doesn't have the slot option.
+
 (defun coalesce-replace-or-inherit (option-name dslots)
   "Inherit option OPTION-NAME from the first of DSLOTS where it's bound."
   (itr (for dslot in dslots)
-       (when (slot-boundp dslot option-name)
+       (when (slot-exists-and-bound-p dslot option-name)
          (leave (values (slot-value dslot option-name) 'bind)))
        (finally (return (values nil 'leave-unbound)))))
 
@@ -32,7 +35,7 @@ METACLASS-NAME. Default behavior is `coalesce-replace-or-inherit'."
 NIL)."
   (values (remove-duplicates
            (itr (for dslot in dslots)
-                (when (slot-boundp dslot option-name)
+                (when (slot-exists-and-bound-p dslot option-name)
                   (appending (slot-value dslot option-name)))))
           'bind))
 
@@ -40,34 +43,31 @@ NIL)."
   "Set difference of first dslot's OPTION from the rest of DSLOTS, removing
 duplicates. Lists only (unbound treated as NIL)."
   (values (remove-duplicates
-           (when (slot-boundp (first dslots) option-name)
+           (when (slot-exists-and-bound-p (first dslots) option-name)
              (set-difference (slot-value (first dslots) option-name)
                              (coalesce-merge option-name (rest dslots))
                              :test 'equal))
            :test 'equal)
           'bind))
 
-(find-if #'null '(4 0 5)) 
-
 (defun coalesce-bound-only-once (option-name dslots)
   "Ensure that a value is bound only once in the whole inheritence line.
 Subclasses inherit that value (and cannot override it, getting an error)."
-  (fbind ((option-boundp (rcurry 'slot-boundp option-name)))
+  (fbind ((option-boundp (rcurry 'slot-exists-and-bound-p option-name)))
     (let* ((inherited-value-slot (find-if #'option-boundp (rest dslots)))
            (inherited-value (when inherited-value-slot
                               (slot-value inherited-value-slot option-name))))
       (cond ((option-boundp (first dslots))
              (w- option-value (slot-value (first dslots) option-name)
-               (error-on*
-                (and inherited-value-slot
-                     (not (equal option-value inherited-value)))
-                'slot-extra-options-error
-                "The inheritence rule for ~A specifies that the value
+               (error-on* (and inherited-value-slot
+                               (not (equal option-value inherited-value)))
+                          'slot-extra-options-error
+                          "The inheritence rule for ~A specifies that the value
 may only be bound once.  You are getting this error because one of the classes
 you are inheriting from has already bound this value or if you specified an
 :initform for this option in `def-extra-options-class' when defining this
 class, and the new value is different."
-                option-name)
+                          option-name)
                (values option-value 'bind)))
             (inherited-value-slot (values inherited-value 'bind))
             (t (values nil 'leave-unbound))))))
