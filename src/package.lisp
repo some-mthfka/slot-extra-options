@@ -37,11 +37,14 @@
                 (:import-from
                  #:closer-mop
                  #:class-slots
-                 #:slot-definition-name
-                 #:slot-definition-type
-                 #:slot-definition-initform
-                 #:slot-definition-location)
-
+                 #:validate-superclass
+                 #:standard-direct-slot-definition
+                 #:standard-effective-slot-definition
+                 #:compute-effective-slot-definition
+                 #:direct-slot-definition-class
+                 #:effective-slot-definition-class
+                 #:ensure-finalized)
+                
                 (:import-from
                  #:iterate
                  #:iterate #:display-iterate-clauses

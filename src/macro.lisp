@@ -28,15 +28,15 @@ options may have custom inheritence rules - see `coalesce-options' for details."
            ((options :initform (mapcar #'make-slot-option-from-definition
                                        ',option-definitions)))
            ,@defclass-options)
-         (defclass ,dsd (c2mop:standard-direct-slot-definition)
+         (defclass ,dsd (standard-direct-slot-definition)
            ,slots)
-         (defclass ,esd (c2mop:standard-effective-slot-definition)
+         (defclass ,esd (standard-effective-slot-definition)
            ,slots)
-         (defmethod c2mop:direct-slot-definition-class
+         (defmethod direct-slot-definition-class
              ((class ,name) &rest initargs)
            (declare (ignore class initargs))
            (find-class ',dsd))
-         (defmethod c2mop:effective-slot-definition-class
+         (defmethod effective-slot-definition-class
              ((class ,name) &rest initargs)
            (declare (ignore class initargs))
            (find-class ',esd))
@@ -59,7 +59,7 @@ options may have custom inheritence rules - see `coalesce-options' for details."
       :validates t))
   (:metaclass options-test-metaclass))
 
-;; (funcall (compose #'c2mop:ensure-finalized #'find-class) 'class-a)
+;; (funcall (compose #'ensure-finalized #'find-class) 'class-a)
 
 (defclass class-b ()
   ((v :subtracts (3 4 5)))
@@ -80,14 +80,14 @@ options may have custom inheritence rules - see `coalesce-options' for details."
   (:metaclass options-test-metaclass))
 
 (test slot-extra-options
-  (fbind ((first-slot (compose 'first 'c2mop:class-slots 'find-class))
-          (finalize (compose #'c2mop:ensure-finalized #'find-class)))
+  (fbind ((first-slot (compose 'first 'class-slots 'find-class))
+          (finalize (compose #'ensure-finalized #'find-class)))
     (mapcar #'finalize '(class-a class-b class-c class-d class-e))
     ;; option type error
     (fail (progn (defclass option-type-failure-class (class-a)
                    ((v :validates 0)) ; 0 is not t or nil
                    (:metaclass options-test-metaclass))
-                 (finalize 'class-validates-fail))
+                 (finalize 'option-type-failure-class))
         'type-error)    
     (let ((slot-a (first-slot 'class-a))
           (slot-b (first-slot 'class-b))
@@ -110,7 +110,7 @@ options may have custom inheritence rules - see `coalesce-options' for details."
       (fail (progn (defclass bound-only-once-failure-class (class-a)
                      ((v :validates nil)) ; can't replace value
                      (:metaclass options-test-metaclass))
-                   (finalize 'class-validates-fail))
+                   (finalize 'bound-only-once-failure-class))
           'slot-extra-options-error)
       (true (slot-definition-validates slot-a))
       (fail (slot-definition-validates slot-b) 'unbound-slot)

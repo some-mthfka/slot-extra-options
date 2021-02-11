@@ -7,10 +7,10 @@
 (defgeneric coalesce-options (option-name class dslots rule)
   (:documentation "Coalesce option OPTION-NAME of CLASS from direct slots
 DSLOTS. This lets you define inheritence for custom options (see
-`slot-extra-options-class').  `c2mop:compute-effective-slot-definition' calls
-this method for each option in turn and expects (values <new value of the
-option> <'bind or 'leave-unbound>).  To define a custom inheritence rule, you
-can specialize on RULE (see already existing specializations for examples)."))
+`slot-extra-options-class').  `compute-effective-slot-definition' calls this
+method for each option in turn and expects (values <new value of the option>
+<'bind or 'leave-unbound>).  To define a custom inheritence rule, you can
+specialize on RULE (see already existing specializations for examples)."))
 
 ;; *** Specific strategies
 

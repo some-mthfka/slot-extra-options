@@ -31,14 +31,14 @@
   (:documentation "A metaclass which lets you define new slot options/keywords
 for classes.  See `def-extra-options-metaclass' for usage details."))
 
-(defmethod c2mop:validate-superclass ((class slot-extra-options-class)
-                                      (superclass standard-class))
+(defmethod validate-superclass ((class slot-extra-options-class)
+                                (superclass standard-class))
   t)
 
 ;; *** Computing effective slot definition
 
 ;; see p.86 for details on direct-slots
-(defmethod c2mop:compute-effective-slot-definition
+(defmethod compute-effective-slot-definition
     ((class slot-extra-options-class) slot-name direct-slots)
   "Coalesce DIRECT-SLOTS and produce a slot with custom options defined in
 CLASS."
