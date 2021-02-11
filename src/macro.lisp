@@ -2,15 +2,20 @@
 
 ;; * Code
 
-(defmacro def-extra-options-metaclass (name option-definitions)
-  "Define metaclass NAME from OPTION-DEFINITIONS (see
-`slot-extra-options-class').  OPTION-DEFINITIONS are used to construct
-`slot-option's and are unevaluated.  The format for an option definition is
-(name <:initform initform> <:coalesce-function function>). For details on
-:coalesce-function, look up `coalesce-options'."
+(defmacro def-extra-options-metaclass
+    (name option-definitions &rest defclass-options)
+  "Define metaclass NAME from OPTION-DEFINITIONS while inheriting from
+`slot-extra-options-class'.  OPTION-DEFINITIONS are used to construct
+`slot-option's.  The format for an option definition is (name [:initform
+<initform>] [:coalescence <rule specializer>] [:type <type of option>]).  The
+custom options you define may be easily inspected (after the class has been
+finalized) just like regular options (aka `slot-definition-initform'): with
+slot-definition-<option-name>, which yields the desired `slot-option'.  Slot
+options may have custom inheritence rules - see `coalesce-options' for details."
   (flet ((make-slot-definition (option)
            (list
             (name option)
+            :type (option-type option)
             :initarg (make-keyword (name option))
             :reader (symbolicate 'slot-definition- (name option)))))
     (let* ((dsd (symbolicate name '-direct-slot-definition))
@@ -20,8 +25,9 @@
            (slots (mapcar #'make-slot-definition options)))
       `(progn
          (defclass ,name (slot-extra-options-class)
-           ()
-           (:default-initargs :option-definitions ',option-definitions))
+           ((options :initform (mapcar #'make-slot-option-from-definition
+                                       ',option-definitions)))
+           ,@defclass-options)
          (defclass ,dsd (c2mop:standard-direct-slot-definition)
            ,slots)
          (defclass ,esd (c2mop:standard-effective-slot-definition)
@@ -34,54 +40,55 @@
              ((class ,name) &rest initargs)
            (declare (ignore class initargs))
            (find-class ',esd))
-         ,@(itr (for option in options)
-                (when (slot-boundp option 'coalesce-function)
-                  (collect
-                      `(defmethod coalesce-options
-                           ((option-name (eql ',(name option)))
-                            (metaclass-name (eql ',name))
-                            dslots)
-                         (,(coalesce-function option) option-name dslots)))))
          (find-class ',name)))))
 
 ;; ** Test 
 
+(in-package :slot-extra-options-tests)
+
+(def-extra-options-metaclass options-test-metaclass
+    ((replaces :initform nil)
+     (subtracts :initform nil :coalescence slot-extra-options:difference)
+     (merges :coalescence merge)
+     (validates :coalescence bound-only-once :type (member t nil))))
+
+(defclass class-a ()
+  ((v :replaces old-value
+      :subtracts (1 2 3)
+      :merges (1 2 3)
+      :validates t))
+  (:metaclass options-test-metaclass))
+
+;; (funcall (compose #'c2mop:ensure-finalized #'find-class) 'class-a)
+
+(defclass class-b ()
+  ((v :subtracts (3 4 5)))
+  (:metaclass options-test-metaclass))
+
+(defclass class-c (class-a)
+  ((v :replaces new-value
+      :subtracts (0 1 2 3 4 5 6 7)
+      :merges (0 1 2)))
+  (:metaclass options-test-metaclass))
+
+(defclass class-d (class-b class-c)
+  ((v :subtracts (0 1 2 3 4 5 6 7 8)))
+  (:metaclass options-test-metaclass))
+
+(defclass class-e (class-b)
+  ((v :validates t))
+  (:metaclass options-test-metaclass))
+
 (test slot-extra-options
-
-  (def-extra-options-metaclass options-test-metaclass
-      ((replaces :initform nil)
-       (subtracts :initform nil :coalesce-function coalesce-subtract)
-       (merges :coalesce-function coalesce-merge)
-       (validates :coalesce-function coalesce-bound-only-once)))
-
-  (defclass class-a ()
-    ((v :replaces old-value
-        :subtracts (1 2 3)
-        :merges (1 2 3)
-        :validates t))
-    (:metaclass options-test-metaclass))
-
-  (defclass class-b ()
-    ((v :subtracts (3 4 5)))
-    (:metaclass options-test-metaclass))
-
-  (defclass class-c (class-a)
-    ((v :replaces new-value
-        :subtracts (0 1 2 3 4 5 6 7)
-        :merges (0 1 2)))
-    (:metaclass options-test-metaclass))
-
-  (defclass class-d (class-b class-c)
-    ((v :subtracts (0 1 2 3 4 5 6 7 8)))
-    (:metaclass options-test-metaclass))
-
-  (defclass class-e (class-b)
-    ((v :validates t))
-    (:metaclass options-test-metaclass))
-  
   (fbind ((first-slot (compose 'first 'c2mop:class-slots 'find-class))
           (finalize (compose #'c2mop:ensure-finalized #'find-class)))
     (mapcar #'finalize '(class-a class-b class-c class-d class-e))
+    ;; option type error
+    (fail (progn (defclass option-type-failure-class (class-a)
+                   ((v :validates 0)) ; 0 is not t or nil
+                   (:metaclass options-test-metaclass))
+                 (finalize 'class-validates-fail))
+        'type-error)    
     (let ((slot-a (first-slot 'class-a))
           (slot-b (first-slot 'class-b))
           (slot-c (first-slot 'class-c))
@@ -91,7 +98,7 @@
       (is eql (slot-definition-replaces slot-a) 'old-value)
       (is eql (slot-definition-replaces slot-c) 'new-value)
       (is eql (slot-definition-replaces slot-d) 'new-value)
-      ;; coalesce-subtract
+      ;; difference
       (is equal (sort (copy-list (slot-definition-subtracts slot-c)) '<)
           '(0 4 5 6 7))
       (is equal (slot-definition-subtracts slot-d) '(8))
@@ -100,8 +107,8 @@
       (is equal (slot-definition-merges slot-c) '(0 1 2 3))
       (is equal (slot-definition-merges slot-d) '(0 1 2 3))
       ;; coalesce-bound-only-once
-      (fail (progn (defclass class-validates-fail (class-a)
-                     ((v :validates t))
+      (fail (progn (defclass bound-only-once-failure-class (class-a)
+                     ((v :validates nil)) ; can't replace value
                      (:metaclass options-test-metaclass))
                    (finalize 'class-validates-fail))
           'slot-extra-options-error)

@@ -12,9 +12,10 @@
 ;; ** Slot Option
 
 (defclass* slot-option ()
-  ((name)
+  ((name :type symbol)
    (initform)
-   (coalesce-function))
+   (option-type :initform t :initarg :type)
+   (coalescence :type symbol :initform 'replace-or-inherit))
   (:documentation "Contains information that defines an option."))
 
 (defun make-slot-option-from-definition (option-definition)
@@ -24,18 +25,11 @@
 ;; ** Slot Extra Options Class
 
 (defclass slot-extra-options-class (standard-class)
-  ((options :initform nil
-            :initarg :options
-            :reader options))
-  (:documentation "A metaclass which lets you define new slot options/keywords.
-These options may be easily inspected and custom inheritence rules can be set
-up (see `coalesce-options' for details).  For examples, see *Examples* section
-at the bottom of the file where this class is defined."))
-
-(defmethod initialize-instance :after
-    ((class slot-extra-options-class) &key option-definitions)
-  (setf (slot-value class 'options)
-        (mapcar #'make-slot-option-from-definition option-definitions)))
+  ((options :initarg :options
+            :reader options
+            :allocation :class))
+  (:documentation "A metaclass which lets you define new slot options/keywords
+for classes.  See `def-extra-options-metaclass' for usage details."))
 
 (defmethod c2mop:validate-superclass ((class slot-extra-options-class)
                                       (superclass standard-class))
@@ -51,12 +45,15 @@ CLASS."
   (let ((normal-slot (call-next-method)))
     (itr (for option in (options class))
          (mvbind (value action)
-             (coalesce-options (name option) (type-of class) direct-slots)
+             (coalesce-options (name option)
+                               class
+                               direct-slots
+                               (coalescence option))
            (unless (member action '(bind leave-unbound))
              (error 'slot-extra-options-error "`coalesce-options' for option ~A
 in slot ~A is expected to return (values <new value of the option> <'bind or
 'leave-unbound>). Please, make sure that the function you passed in
-:coalesce-function (or `coalesce-options' if you specified it yourself) does
+:coalescence (or `coalesce-options' if you specified it yourself) does
 that."
                     (name option) slot-name))
            (if (eql action 'bind)
