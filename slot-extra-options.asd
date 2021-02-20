@@ -15,4 +15,5 @@
    (:file "error-conditions")
    (:file "coalesce")
    (:file "slot-extra-options")
-   (:file "macro")))
+   (:file "macro")
+   (:file "tests")))
