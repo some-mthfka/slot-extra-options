@@ -58,17 +58,20 @@ Subclasses inherit that value (and cannot override it, getting an error)."
            (inherited-value (when inherited-value-slot
                               (slot-value inherited-value-slot option-name))))
       (cond ((option-boundp (first dslots))
-             (w- option-value (slot-value (first dslots) option-name)
+             (let ((option-value (slot-value (first dslots) option-name)))
                (restart-case
-                   (error-on* (and inherited-value-slot
-                                   (not (equal option-value inherited-value)))
-                              'slot-extra-options-error
-                              "The inheritence rule for ~A of class ~A specifies
-that the value may only be bound once.  You are getting this error because one
-of the classes you are inheriting from has already bound this value or if you
-specified an :initform for this option in `def-extra-options-class' when
-defining this class, and the new value ~A is different from the inherited ~A."
-                              option-name class option-value inherited-value)
+                   (when (and inherited-value-slot
+                              (not (equal option-value inherited-value)))
+                     (error
+                      'slot-extra-options-error
+                      :message
+                      (format nil "The inheritence rule for ~A of class ~A
+specifies that the value may only be bound once.  You are getting this error
+because one of the classes you are inheriting from has already bound this value
+or if you specified an :initform for this option in `def-extra-options-class'
+when defining this class, and the new value ~A is different from the inherited
+~A."
+                              option-name class option-value inherited-value)))
                  (rebind-anyway () :report "Rebind anyway (at your own risk)"))
                (values option-value 'bind)))
             (inherited-value-slot (values inherited-value 'bind))

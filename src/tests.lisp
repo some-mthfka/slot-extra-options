@@ -1,6 +1,6 @@
 (in-package :slot-extra-options-tests)
 
-(test slot-extra-options
+(define-test slot-extra-options
 
   (def-extra-options-metaclass options-test-metaclass
       ((replaces :initform nil)
@@ -72,3 +72,6 @@
       (true (slot-definition-validates slot-c))
       (true (slot-definition-validates slot-d))
       (true (slot-definition-validates slot-e)))))
+
+#+or
+(test 'slot-extra-options)

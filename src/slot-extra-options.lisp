@@ -11,12 +11,23 @@
 
 ;; ** Slot Option
 
-(defclass* slot-option ()
-  ((name :type symbol)
-   (initform)
-   (option-type :initform t :initarg :type)
-   (coalescence :type symbol :initform 'replace-or-inherit))
+(defclass slot-option ()
+  ((name :type symbol
+         :initarg :name
+         :accessor name)
+   (initform :initarg :initform
+             :accessor initform)
+   (option-type :initform t
+                :initarg :type
+                :accessor option-type)
+   (coalescence :type symbol
+                :initform 'replace-or-inherit
+                :initarg :coalescence
+                :accessor coalescence))
   (:documentation "Contains information that defines an option."))
+
+(defun make-slot-option (&rest args)
+  (apply #'make-instance 'slot-option args))
 
 (defun make-slot-option-from-definition (option-definition)
   "Make `slot-option' from OPTION-DEFINITION."
@@ -44,18 +55,18 @@ for classes.  See `def-extra-options-metaclass' for usage details."))
 CLASS."
   (let ((normal-slot (call-next-method)))
     (itr (for option in (options class))
-         (mvbind (value action)
+         (multiple-value-bind (value action)
              (coalesce-options (name option)
                                class
                                direct-slots
                                (coalescence option))
            (unless (member action '(bind leave-unbound))
-             (error 'slot-extra-options-error "`coalesce-options' for option ~A
-in slot ~A is expected to return (values <new value of the option> <'bind or
-'leave-unbound>). Please, make sure that the function you passed in
-:coalescence (or `coalesce-options' if you specified it yourself) does
-that."
-                    (name option) slot-name))
+             (error 'slot-extra-options-error
+                    :message (format nil "`coalesce-options' for option ~A in
+slot ~A is expected to return (values <new value of the option> <'bind or
+'leave-unbound>). Please, make sure that the function you passed in :coalescence
+(or `coalesce-options' if you specified it yourself) does that."
+                                     (name option) slot-name)))
            (if (eql action 'bind)
                (setf (slot-value normal-slot (name option)) value)
                ;; Initform binding has to be done here, so that option may stay

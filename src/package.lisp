@@ -2,37 +2,22 @@
 
 (macrolet ((defp (name &body body)
              `(defpackage ,name
-                (:use #:cl #:ut)
+                (:use #:cl)
 
                 ,@body
-                
+
                 (:import-from
                  #:alexandria
-                 #:when-let*
-                 #:when-let
-                 #:switch
                  #:compose
-                 #:mappend
                  #:make-keyword
                  #:symbolicate
-                 #:ensure-symbol
-                 #:shuffle
                  #:with-gensyms
-                 #:iota
                  #:curry
                  #:rcurry)
 
                 (:import-from
                  #:serapeum
-                 #:assort
-                 #:fbind
-                 #:fbindrec
-                 #:take
-                 #:batches
-                 #:partitions
-                 #:partition
-                 #:concat
-                 #:defalias)
+                 #:fbind)
                 
                 (:import-from
                  #:closer-mop
@@ -44,54 +29,42 @@
                  #:direct-slot-definition-class
                  #:effective-slot-definition-class
                  #:ensure-finalized)
-                
-                (:import-from
+
+                (:import-from ; not everything is here
                  #:iterate
-                 #:iterate #:display-iterate-clauses
-                 #:defsynonym #:dsetq #:declare-variables
-                 #:defmacro-clause #:defmacro-driver #:defclause-sequence
-                 #:initially #:after-each #:finally #:finally-protected
-                 #:else #:if-first-time #:first-iteration-p #:first-time-p
+                 #:iter #:for #:initially #:finally
                  #:finish #:leave #:next-iteration #:next #:terminate
                  #:repeat #:for #:as #:generate #:generating #:in
-                 #:summing #:multiplying
-                 #:maximizing #:minimizing #:counting
-                 #:always #:never #:thereis #:finding #:collect #:collecting
-                 #:with #:while #:until #:adjoining #:nconcing #:appending
-                 #:nunioning #:unioning #:reducing #:accumulating))))
-
+                 #:collect #:collecting #:with #:while #:until #:appending))))
+  
   (defp #:slot-extra-options
-    (:export
-     ;; error conditions
-     #:slot-extra-options-error
-     
-     ;; coalesce function and the specializers (a rock band from the 70s)
-     #:coalesce-options
-     #:replace-or-inherit
-     #:merge
-     #:difference
-     #:bound-only-once
+      (:export
+       ;; error conditions
+       #:slot-extra-options-error
+       
+       ;; coalesce function and the specializers (a rock band from the 70s)
+       #:coalesce-options
+       #:replace-or-inherit
+       #:merge
+       #:difference
+       #:bound-only-once
 
-     ;; classes
-     #:slot-option
-     #:slot-extra-options-class
+       ;; classes
+       #:slot-option
+       #:slot-extra-options-class
 
-     ;; macros
-     #:def-extra-options-metaclass))
+       ;; macros
+       #:def-extra-options-metaclass))
 
   (defp #:slot-extra-options-tests
-    (:use #:slot-extra-options)
+      (:use #:slot-extra-options)
     (:import-from
      #:parachute
+     #:define-test
+     #:test
      #:true
      #:false
      #:fail
-     #:is
-     #:isnt
-     #:is-values
-     #:isnt-values
-     #:of-type
-     ;; #:finish ;; conflicts with iterate:finish, aliased `escape' instead
-     )))
+     #:is)))
 
 (in-package :slot-extra-options)

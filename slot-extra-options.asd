@@ -4,7 +4,6 @@
   :license "MIT"
   :depends-on (:alexandria
                :parachute
-               :ut
                :closer-mop
                :serapeum
                :iterate)
@@ -12,6 +11,7 @@
   :serial t
   :components
   ((:file "package")
+   (:file "utils")
    (:file "error-conditions")
    (:file "coalesce")
    (:file "slot-extra-options")
