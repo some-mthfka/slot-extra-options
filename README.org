@@ -51,10 +51,10 @@ As you can see, the ~def-extra-options-metaclass~ has defined ~slot-definition-s
 
 When inheriting classes, you can control how options will be inherited. To this end, you can specialize on ~coalesce-options~. These specializations are available out of the box:
 
-- replace-or-inherit (default, simply inherits the value from its most direct superclass)
-- bound-only-once (once specified, can't be overriden in subclasses)
-- merge (lists only, new value merged with all the values of the superclasses)
-- difference (lists only, set-difference of new value with all values of the superclasses)
+- ~replace-or-inherit~ (default, simply inherits the value from its most direct superclass)
+- ~bound-only-once~ (once specified, can't be overriden in subclasses)
+- ~merge~ (lists only, new value merged with all the values of the superclasses)
+- ~difference~ (lists only, set-difference of new value with all values of the superclasses)
 
 For a demonstration, let's inherit from ~alpha~:
 
