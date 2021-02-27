@@ -84,3 +84,11 @@ Now, if you want to write a macro which defines a class and inspects it right aw
 #+END_SRC
 
 Alternatively, you can probably define an ~:after~ method for ~c2mop:finalize-inheritance~: sounds much cleaner (but this one I haven't tried yet).
+
+** Code Guidelines
+
+Less than 80 chars per line.
+
+** Licence
+
+LGPL-3.0-or-later
