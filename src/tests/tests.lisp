@@ -32,11 +32,12 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
 (define-test slot-extra-options
 
-  ;; CCL errors out on the passes past the first one here because of
-  ;; `bound-only-once-failure-class'. I don't know how to circumvent this
-  ;; properly, trying to redefine it correctly doesn't help, makunbound doesn't
-  ;; either.  Redefining a superclass just keeps running the slot computation
-  ;; code based on the stale definition.  Therefore this klutch here:
+  ;; CCL and ECL (but not SBCL which works just fine) error out on the passes
+  ;; past the first one here because of `bound-only-once-failure-class'. I don't
+  ;; know how to circumvent this properly, trying to redefine it correctly
+  ;; doesn't help, makunbound doesn't either.  Redefining a superclass just
+  ;; keeps running the slot computation code based on the stale definition.
+  ;; Therefore this klutch here:
   (unless (ignore-errors (find-class 'class-a)) 
     (defclass class-a ()
       ((v :replaces old-value
