@@ -16,8 +16,10 @@ You should have received a copy of the GNU Lesser General Public License along
 with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
 (asdf:defsystem #:slot-extra-options
+  :version "1.0.0"
   :description "Extra options for slots using MOP."
   :author "Dmitrii Korobeinikov <dim1212k@gmail.com>"
+  :homepage "https://github.com/some-mthfka/slot-extra-options"
   :license "LGPL-3.0-or-later"
   :depends-on (:alexandria
                :parachute
