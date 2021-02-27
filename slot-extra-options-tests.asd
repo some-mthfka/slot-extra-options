@@ -15,23 +15,25 @@ more details.
 You should have received a copy of the GNU Lesser General Public License along
 with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
-(asdf:defsystem #:slot-extra-options
+(asdf:defsystem #:slot-extra-options-tests
   :version "1.0.0"
-  :description "Extra options for slots using MOP."
+  :description "Tests for slot-extra-options."
   :author "Dmitrii Korobeinikov <dim1212k@gmail.com>"
   :homepage "https://github.com/some-mthfka/slot-extra-options"
   :license "LGPL-3.0-or-later"
   :depends-on (:alexandria
+               :slot-extra-options
+               :parachute
                :closer-mop
                :serapeum
                :iterate)
-  :in-order-to ((asdf:test-op (asdf:test-op :slot-extra-options-tests)))
-  :pathname "src"
+  ;; https://common-lisp.net/project/asdf/asdf.html#test_002dop
+  ;; there was an error with parachute here when doing `asdf:system-test':
+  :perform (test-op (o s) (uiop:symbol-call :parachute '#:test
+                                            :slot-extra-options-tests))
+  ;; :perform (test-op (o s) (uiop:symbol-call :slot-extra-options-tests '#:run))
+  :pathname "src/tests"
   :serial t
   :components
   ((:file "package")
-   (:file "utils")
-   (:file "error-conditions")
-   (:file "coalesce")
-   (:file "slot-extra-options")
-   (:file "macro")))
+   (:file "tests")))

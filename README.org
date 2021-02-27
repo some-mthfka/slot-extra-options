@@ -49,7 +49,7 @@ As you can see, the ~def-extra-options-metaclass~ has defined ~slot-definition-s
 
 ** Inheritence and Coalescence
 
-When inheriting classes, you can control how options will be inherited. To this end, you can specialize ~coalesce-options~. These specializations are available out of the box:
+When inheriting classes, you can control how options will be inherited. To this end, you can specialize on ~coalesce-options~. These specializations are available out of the box:
 
 - replace-or-inherit (default, simply inherits the value from its most direct superclass)
 - bound-only-once (once specified, can't be overriden in subclasses)
@@ -88,6 +88,16 @@ Alternatively, you can probably define an ~:after~ method for ~c2mop:finalize-in
 ** Code Guidelines
 
 Less than 80 chars per line.
+
+** Installation
+
+Hopefully, coming to Quicklisp soon.
+
+** Compiler Support
+
+Should work where ~closer-mop~ works.
+
+Tests ran successfully on: =SBCL 2.0.11=, =ECL 20.4.24=, =CCL 1.12=. 
 
 ** Licence
 

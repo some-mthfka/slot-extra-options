@@ -26,18 +26,24 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 ;; out of the test definition below to avoid warnings
 (def-extra-options-metaclass options-test-metaclass
     ((replaces :initform nil)
-     (subtracts :initform nil :coalescence difference)
-     (merges :coalescence merge)
-     (validates :coalescence bound-only-once :type (member t nil))))
+     (subtracts :initform nil :type list :coalescence difference)
+     (merges :type list :coalescence merge)
+     (validates :coalescence bound-only-once :type boolean)))
 
 (define-test slot-extra-options
 
-  (defclass class-a ()
-    ((v :replaces old-value
-        :subtracts (1 2 3)
-        :merges (1 2 3)
-        :validates t))
-    (:metaclass options-test-metaclass))
+  ;; CCL errors out on the passes past the first one here because of
+  ;; `bound-only-once-failure-class'. I don't know how to circumvent this
+  ;; properly, trying to redefine it correctly doesn't help, makunbound doesn't
+  ;; either.  Redefining a superclass just keeps running the slot computation
+  ;; code based on the stale definition.  Therefore this klutch here:
+  (unless (ignore-errors (find-class 'class-a)) 
+    (defclass class-a ()
+      ((v :replaces old-value
+          :subtracts (1 2 3)
+          :merges (1 2 3)
+          :validates t))
+      (:metaclass options-test-metaclass)))
 
   ;; (funcall (compose #'ensure-finalized #'find-class) 'class-a)
 
@@ -45,7 +51,12 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
     ((v :subtracts (3 4 5)))
     (:metaclass options-test-metaclass))
 
-  (defclass class-c (class-a)
+  ;; metaclass'ed classes should inherit from non-optioned classes just fine, so
+  ;; just throw this in there
+  (defclass non-options-class ()
+    ((v)))
+
+  (defclass class-c (class-a non-options-class)
     ((v :replaces new-value
         :subtracts (0 1 2 3 4 5 6 7)
         :merges (0 1 2)))
@@ -59,16 +70,15 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
     ((v :validates t))
     (:metaclass options-test-metaclass))
 
-  (eval ; needed to avoid warnings due to the 
+  (eval ; needed because the following needs to be in a seperate macro pass
    '(fbind ((first-slot (compose 'first 'class-slots 'find-class))
             (finalize (compose #'ensure-finalized #'find-class)))
      (mapcar #'finalize '(class-a class-b class-c class-d class-e))
      ;; option type error
      (fail (progn (defclass option-type-failure-class (class-a)
-                    ((v :validates 0))  ; 0 is not t or nil
+                    ((v :merges 0))     ; 0 is not a list
                     (:metaclass options-test-metaclass))
-                  (finalize 'option-type-failure-class))
-         'type-error)    
+                  (finalize 'option-type-failure-class)) 'type-error)
      (let ((slot-a (first-slot 'class-a))
            (slot-b (first-slot 'class-b))
            (slot-c (first-slot 'class-c))
@@ -99,4 +109,4 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
        (true (slot-definition-validates slot-e))))))
 
 #+or
-(test 'slot-extra-options)
+(test 'slot-extra-options :report 'parachute:interactive)
