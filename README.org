@@ -91,7 +91,17 @@ Less than 80 chars per line.
 
 ** Installation
 
-Hopefully, coming to Quicklisp soon.
+Available on Quicklisp:
+
+#+BEGIN_SRC lisp
+  (ql:quickload :slot-extra-options)
+#+END_SRC
+
+To run tests, do:
+
+#+BEGIN_SRC lisp
+  (asdf:test-system :slot-extra-options)
+#+END_SRC
 
 ** Compiler Support
 
