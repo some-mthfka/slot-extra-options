@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License along
 with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
 (asdf:defsystem #:slot-extra-options-tests
-  :version "1.0.0"
+  :version "1.1.0"
   :description "Tests for slot-extra-options."
   :author "Dmitrii Korobeinikov <dim1212k@gmail.com>"
   :homepage "https://github.com/some-mthfka/slot-extra-options"
