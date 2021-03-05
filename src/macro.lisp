@@ -22,13 +22,14 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 (defmacro def-extra-options-metaclass
     (name direct-superclasses option-definitions &rest defclass-options)
   "Define metaclass NAME from OPTION-DEFINITIONS while inheriting from
-`slot-extra-options-class'.  OPTION-DEFINITIONS are used to construct
-`slot-option's.  The format for an option definition is (name [:initform
-<initform>] [:coalescence <rule specializer>] [:type <type of option>]).  The
-custom options you define may be easily inspected (after the class has been
-finalized) just like regular options (aka `slot-definition-initform'): with
-slot-definition-<option-name>, which yields the desired `slot-option'.  Slot
-options may have custom inheritence rules - see `coalesce-options' for details."
+DIRECT-SUPERCLASSES and `slot-extra-options-class'.  OPTION-DEFINITIONS are used
+to construct `slot-option's.  The format for an option definition is (name
+[:initform <initform>] [:coalescence <rule specializer>] [:type <type of
+option>]).  The custom options you define may be easily inspected (after the
+class has been finalized) just like regular options (aka
+`slot-definition-initform'): with slot-definition-<option-name>, which yields
+the desired `slot-option'.  Slot options may have custom inheritence rules - see
+`coalesce-options' for details."
   (flet ((make-slot-definition (option)
            (list
             (name option)

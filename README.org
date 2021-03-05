@@ -11,11 +11,11 @@ Possible use case: you want to automatically set up some definitions based on so
 So, the first step is to define the metaclass and describe what options you want to have.
 
 #+BEGIN_SRC lisp
-(def-extra-options-metaclass example-metaclass
-    ((start :initform nil ; `:coalescence', by default, is `replace-or-inherit'
-            :type integer)
-     (validates :coalescence bound-only-once
-                :type boolean)))
+  (def-extra-options-metaclass example-metaclass ()
+      ((start :initform nil ; `:coalescence', by default, is `replace-or-inherit'
+              :type integer)
+       (validates :coalescence bound-only-once
+                  :type boolean)))
 #+END_SRC
  
 For each option, other than its name, you can specify: 
@@ -26,24 +26,24 @@ For each option, other than its name, you can specify:
 Now, a class with this metaclass will have ~:start~ and ~:validates~ options:
 
 #+BEGIN_SRC lisp
-(defclass alpha ()
-  ((zulu :initform 22
-         :start 55
-         :validates t))
-  (:metaclass example-metaclass))
+  (defclass alpha ()
+    ((zulu :initform 22
+           :start 55
+           :validates t))
+    (:metaclass example-metaclass))
 #+END_SRC
 
 Before you can inspect the class, finalize it first (or simply instantiate its object): ~(c2mop:ensure-finalized (find-class 'alpha))~. Now, you can access the slot definition:
 
 #+BEGIN_SRC lisp
-(let ((zulu-definition (find 'zulu (c2mop:class-slots (find-class 'alpha))
-                             :key #'c2mop:slot-definition-name)))
-  (values (slot-definition-start zulu-definition)
-          (slot-definition-validates zulu-definition)))
+  (let ((zulu-definition (find 'zulu (c2mop:class-slots (find-class 'alpha))
+                               :key #'c2mop:slot-definition-name)))
+    (values (slot-definition-start zulu-definition)
+            (slot-definition-validates zulu-definition)))
 #+END_SRC
 
 #+BEGIN_SRC lisp
-: 55, T
+  55, T
 #+END_SRC
 
 As you can see, the ~def-extra-options-metaclass~ has defined ~slot-definition-start~ and ~slot-definition-validates~.
@@ -60,9 +60,9 @@ When inheriting classes, you can control how options will be inherited. To this 
 For a demonstration, let's inherit from ~alpha~:
 
 #+BEGIN_SRC lisp
-(defclass beta (alpha)
-  ((zulu :start 66))
-  (:metaclass example-metaclass))
+  (defclass beta (alpha)
+    ((zulu :start 66))
+    (:metaclass example-metaclass))
 #+END_SRC
 
 Now, if you inspect ~beta~, you will see that ~start~ is now =66=. Note that you can't set ~:validates~ to ~NIL~, as that would cause an error in ~coalesce-options~, because ~:coalesecence~ for this option is ~bound-only-once~. Also, given that the compiler does type checking (like SBCL with high enough safety), trying to supply a value of a non-compatible type to an option will yield a compile-time error. See [[file:example.lisp]] to see all of these in action.
