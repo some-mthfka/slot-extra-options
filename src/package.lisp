@@ -23,6 +23,7 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
      (:import-from
       #:alexandria
+      #:flatten
       #:compose
       #:make-keyword
       #:symbolicate
@@ -32,7 +33,8 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
      (:import-from
       #:serapeum
-      #:fbind)
+      #:fbind
+      #:eval-always)
      
      (:import-from
       #:closer-mop
@@ -53,22 +55,29 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
       #:collect #:collecting #:with #:while #:until #:appending)))
 
 (def-extra-slot-options-package #:slot-extra-options
-    (:export
-     ;; error conditions
-     #:slot-extra-options-error
-     
-     ;; coalesce function and the specializers (a rock band from the 70s)
-     #:coalesce-options
-     #:replace-or-inherit
-     #:merge
-     #:difference
-     #:bound-only-once
+  (:export
+   ;; error conditions
+   #:slot-extra-options-error
 
-     ;; classes
-     #:slot-option
-     #:slot-extra-options-class
+   ;; coalesce function and the specializers (a rock band from the 70s)
+   #:coalesce-options
+   #:replace-or-inherit
+   #:merge
+   #:difference
+   #:bound-only-once
 
-     ;; macros
-     #:def-extra-options-metaclass))
+   ;; metaclass
+   #:slot-extra-options-class
+   #:options
+
+   ;; slot-option
+   #:slot-option
+   #:name
+   #:initform
+   #:option-type
+   #:coalescence
+
+   ;; macros
+   #:def-extra-options-metaclass))
 
 ;; (in-package :slot-extra-options)

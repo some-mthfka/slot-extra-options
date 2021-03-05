@@ -23,28 +23,80 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
 (in-package :slot-extra-options-tests)
 
+(defmacro test (name &body body)
+  `(progn (define-test ,name ,@body)
+          (eval-when (:execute)
+            (parachute:test ',name :report 'parachute:interactive))))
+
+(test metaclass-inheritence
+  (def-extra-options-metaclass metaclass-a ()
+    ((a :type integer :coalescence bound-only-once)
+     (b :type char)))
+  (def-extra-options-metaclass metaclass-b ()
+    ((a :coalescence difference)
+     (c)))
+  (def-extra-options-metaclass metaclass-c (metaclass-b)
+    ((a :type list)
+     (b :initform 22)))
+  (def-extra-options-metaclass metaclass-d (metaclass-a metaclass-c)
+    ((b :initform 25)))
+  (def-extra-options-metaclass metaclass-e (metaclass-c metaclass-a)
+    ())
+  (macrolet ((with-options (sym metaclass-name &body body)
+               `(let ((,sym (slot-extra-options::options (c2mop:class-prototype
+                                                          (find-class ',metaclass-name)))))
+                  (is eql ,(length body) (length ,sym))
+                  ,@body))
+             (check-option (name options &key (option-type t)
+                                           (coalescence 'replace-or-inherit)
+                                           (initform nil initform-p))
+               (with-gensyms (option-sym)
+                 `(let* ((,option-sym (find ',name ,options :key #'name)))
+                    (is eql ,option-type (option-type ,option-sym))
+                    (is eql ',coalescence (coalescence ,option-sym))
+                    ,(if initform-p
+                         `(is eql ,initform (initform ,option-sym))
+                         `(false (slot-boundp ,option-sym 'initform)))))))
+    (with-options m metaclass-a
+      (check-option a m :option-type 'integer :coalescence bound-only-once)
+      (check-option b m :option-type 'char))
+    (with-options m metaclass-b
+      (check-option a m :coalescence difference)
+      (check-option c m))
+    (with-options m metaclass-c
+      (check-option a m :option-type 'list :coalescence difference)
+      (check-option b m :initform 22)
+      (check-option c m))
+    (with-options m metaclass-d
+      (check-option a m :option-type 'integer :coalescence bound-only-once)
+      (check-option b m :option-type 'char :initform 25)
+      (check-option c m))
+    (with-options m metaclass-e
+      (check-option a m :option-type 'list :coalescence difference)
+      (check-option b m :option-type t :initform 22)
+      (check-option c m))))
+
 ;; out of the test definition below to avoid warnings
-(def-extra-options-metaclass options-test-metaclass
-    ((replaces :initform nil)
-     (subtracts :initform nil :type list :coalescence difference)
-     (merges :type list :coalescence merge)
-     (validates :coalescence bound-only-once :type boolean)))
+(def-extra-options-metaclass options-test-metaclass ()
+  ((replaces :initform nil)
+   (subtracts :initform nil :type list :coalescence difference)
+   (merges :type list :coalescence merge)
+   (validates :coalescence bound-only-once :type boolean)))
 
-(define-test slot-extra-options
-
+(test slot-extra-options
   ;; CCL and ECL (but not SBCL which works just fine) error out on the passes
   ;; past the first one here because of `bound-only-once-failure-class'. I don't
   ;; know how to circumvent this properly, trying to redefine it correctly
-  ;; doesn't help, makunbound doesn't either.  Redefining a superclass just
+  ;; doesn't help, `makunbound' doesn't either.  Redefining a superclass just
   ;; keeps running the slot computation code based on the stale definition.
-  ;; Therefore this klutch here:
-  (unless (ignore-errors (find-class 'class-a)) 
-    (defclass class-a ()
-      ((v :replaces old-value
-          :subtracts (1 2 3)
-          :merges (1 2 3)
-          :validates t))
-      (:metaclass options-test-metaclass)))
+  ;; Therefore this setf klutch here:
+  (setf (find-class 'class-a) nil)
+  (defclass class-a ()
+    ((v :replaces old-value
+        :subtracts (1 2 3)
+        :merges (1 2 3)
+        :validates t))
+    (:metaclass options-test-metaclass))
 
   ;; (funcall (compose #'ensure-finalized #'find-class) 'class-a)
 
@@ -108,6 +160,3 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
        (true (slot-definition-validates slot-c))
        (true (slot-definition-validates slot-d))
        (true (slot-definition-validates slot-e))))))
-
-#+or
-(test 'slot-extra-options :report 'parachute:interactive)

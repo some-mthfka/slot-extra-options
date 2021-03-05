@@ -20,7 +20,7 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 ;; * Code
 
 (defmacro def-extra-options-metaclass
-    (name option-definitions &rest defclass-options)
+    (name direct-superclasses option-definitions &rest defclass-options)
   "Define metaclass NAME from OPTION-DEFINITIONS while inheriting from
 `slot-extra-options-class'.  OPTION-DEFINITIONS are used to construct
 `slot-option's.  The format for an option definition is (name [:initform
@@ -32,29 +32,38 @@ options may have custom inheritence rules - see `coalesce-options' for details."
   (flet ((make-slot-definition (option)
            (list
             (name option)
-            :type (option-type option)
+            :type (if (slot-boundp option 'option-type)
+                      (option-type option)
+                      t)
             :initarg (make-keyword (name option))
-            :reader (symbolicate 'slot-definition- (name option)))))
-    (let* ((dsd (symbolicate name '-direct-slot-definition))
-           (esd (symbolicate name '-effective-slot-definition))
-           (options (mapcar #'make-slot-option-from-definition
+            :reader (symbolicate 'slot-definition- (name option))))
+         (dsd (name) (symbolicate name '-direct-slot-definition))
+         (esd (name) (symbolicate name '-effective-slot-definition)))
+    (let* ((options (mapcar #'make-slot-option-from-definition
                             option-definitions))
            (slots (mapcar #'make-slot-definition options)))
       `(progn
-         (defclass ,name (slot-extra-options-class)
-           ((options :initform (mapcar #'make-slot-option-from-definition
-                                       ',option-definitions)))
+         (defclass ,name (,@direct-superclasses slot-extra-options-class)
+           ((options :allocation :class)) ; allocation is not inherited
            ,@defclass-options)
-         (defclass ,dsd (standard-direct-slot-definition)
+         (c2mop:ensure-finalized (find-class ',name))
+         (setf (options (c2mop:class-prototype (find-class ',name)))
+               (merge-metaclass-options
+                (find-class ',name)
+                (mapcar #'make-slot-option-from-definition
+                        ',option-definitions)))
+         (defclass ,(dsd name) (,@(mapcar #'dsd direct-superclasses)
+                                standard-direct-slot-definition)
            ,slots)
-         (defclass ,esd (standard-effective-slot-definition)
+         (defclass ,(esd name) (,@(mapcar #'esd direct-superclasses)
+                                standard-effective-slot-definition)
            ,slots)
          (defmethod direct-slot-definition-class
              ((class ,name) &rest initargs)
            (declare (ignore class initargs))
-           (find-class ',dsd))
+           (find-class ',(dsd name)))
          (defmethod effective-slot-definition-class
              ((class ,name) &rest initargs)
            (declare (ignore class initargs))
-           (find-class ',esd))
+           (find-class ',(esd name)))
          (find-class ',name)))))

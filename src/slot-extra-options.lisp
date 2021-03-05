@@ -34,11 +34,9 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
          :accessor name)
    (initform :initarg :initform
              :accessor initform)
-   (option-type :initform t
-                :initarg :type
+   (option-type :initarg :type
                 :accessor option-type)
    (coalescence :type symbol
-                :initform 'replace-or-inherit
                 :initarg :coalescence
                 :accessor coalescence))
   (:documentation "Contains information that defines an option."))
@@ -54,7 +52,7 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
 (defclass slot-extra-options-class (standard-class)
   ((options :initarg :options
-            :reader options
+            :accessor options
             :allocation :class))
   (:documentation "A metaclass which lets you define new slot options/keywords
 for classes.  See `def-extra-options-metaclass' for usage details."))
@@ -94,3 +92,63 @@ slot ~A is expected to return (values <new value of the option> <'bind or
                  (setf (slot-value normal-slot (name option))
                        (initform option))))))
     normal-slot))
+
+;; *** Metaclass-Level Inheritence for `options' of `slot-extra-options-class'
+
+;; These are used for the metaclass definitions themselves, so that one extra
+;; options metaclass can merge options from another such metaclass(es) through
+;; inheritence.
+
+(defun merge-slot-options (slot-a slot-b)
+  (make-slot-option-from-definition
+   (cons
+    (name slot-a)
+    (itr (for (option-name option-initarg) in '((initform :initform)
+                                                (option-type :type)
+                                                (coalescence :coalescence)))
+         (cond ((and slot-a (slot-boundp slot-a option-name))
+                (collect option-initarg)
+                (collect (slot-value slot-a option-name)))
+               ((and slot-b (slot-boundp slot-b option-name))
+                (collect option-initarg)
+                (collect (slot-value slot-b option-name))))))))
+
+(defun metaclass-options-list-from-inheritence (class new-options)
+  (remove
+   nil
+   (cons new-options
+         (mapcar
+          (lambda (class)
+            (when (and (subtypep class 'slot-extra-options-class)
+                       (slot-exists-and-bound-p (c2mop:class-prototype class)
+                                                'options))
+              (options (c2mop:class-prototype class))))
+          (c2mop:class-direct-superclasses class)))))
+
+(defun set-slot-option-defaults (slot-option)
+  "Fill in the defaults - setting them in `slot-option' directly will screw up
+inhertiing them: they need to be unbound for that.  Destructive."
+  (unless (slot-boundp slot-option 'option-type)
+    (setf (option-type slot-option) t))
+  (unless (slot-boundp slot-option 'coalescence)
+    (setf (coalescence slot-option) 'replace-or-inherit))
+  slot-option)
+
+(defun merge-metaclass-options (class new-options)
+  ;; Options are a list of options slot definitions. Merge them with the
+  ;; definitions of the superclasses:
+  (mapcar
+   #'set-slot-option-defaults
+   (reduce
+    (lambda (options-of-a options-of-b)
+      (append
+       ;; pick slots in b that don't appear in a (by name)
+       (set-difference options-of-b options-of-a :key #'name :test #'eql)
+       ;; merge slots in a with those that appear in b
+       (mapcar (lambda (slot-a)
+                 (merge-slot-options
+                  slot-a
+                  (find (name slot-a) options-of-b :test #'eql :key #'name)))
+               options-of-a)))
+    ;; all options in the hierarchy so far, ordered by priority:
+    (metaclass-options-list-from-inheritence class new-options))))

@@ -20,7 +20,6 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
   (:import-from
    #:parachute
    #:define-test
-   #:test
    #:true
    #:false
    #:fail

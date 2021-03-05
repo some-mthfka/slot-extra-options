@@ -28,10 +28,12 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
                :serapeum
                :iterate)
   ;; https://common-lisp.net/project/asdf/asdf.html#test_002dop
-  ;; there was an error with parachute here when doing `asdf:system-test':
-  :perform (test-op (o s) (uiop:symbol-call :parachute '#:test
-                                            :slot-extra-options-tests))
-  ;; :perform (test-op (o s) (uiop:symbol-call :slot-extra-options-tests '#:run))
+  ;; "we suggest defining conditions to signal when a test-op fails" => be loud
+  ;; by using `interactive'.
+  :perform (test-op (o s) (print (uiop:symbol-call
+                                  :parachute '#:test :slot-extra-options-tests
+                                  :report (uiop:find-symbol*
+                                           "INTERACTIVE" 'parachute))))
   :pathname "src/tests"
   :serial t
   :components

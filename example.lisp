@@ -30,11 +30,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. |#
 
 ;; *** Metaclass
 
-(def-extra-options-metaclass example-metaclass
-    ((start :initform nil ; `:coalescence', by default, is `replace-or-inherit'
-            :type integer)
-     (validates :coalescence bound-only-once
-                :type boolean)))
+(def-extra-options-metaclass example-metaclass ()
+  ((start :initform nil ; `:coalescence', by default, is `replace-or-inherit'
+          :type integer)
+   (validates :coalescence bound-only-once
+              :type boolean)))
 
 ;; *** Class: `alpha'
 

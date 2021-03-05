@@ -42,8 +42,9 @@ Before you can inspect the class, finalize it first (or simply instantiate its o
           (slot-definition-validates zulu-definition)))
 #+END_SRC
 
-#+RESULTS:
+#+BEGIN_SRC lisp
 : 55, T
+#+END_SRC
 
 As you can see, the ~def-extra-options-metaclass~ has defined ~slot-definition-start~ and ~slot-definition-validates~.
 
@@ -107,7 +108,7 @@ To run tests, do:
 
 Should work where ~closer-mop~ works.
 
-Tests ran successfully on: =SBCL 2.0.11=, =ECL 20.4.24=, =CCL 1.12=. 
+Tests ran successfully on: =SBCL 2.0.11=, =ECL 20.4.24=, =CCL 1.12=.
 
 ** Licence
 
