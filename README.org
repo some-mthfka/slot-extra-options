@@ -12,10 +12,10 @@ So, the first step is to define the metaclass and describe what options you want
 
 #+BEGIN_SRC lisp
   (def-extra-options-metaclass example-metaclass ()
-      ((start :initform nil ; `:coalescence', by default, is `replace-or-inherit'
-              :type integer)
-       (validates :coalescence bound-only-once
-                  :type boolean)))
+    ((start :initform nil ; `:coalescence', by default, is `replace-or-inherit'
+            :type integer)
+     (validates :coalescence bound-only-once
+                :type boolean)))
 #+END_SRC
  
 For each option, other than its name, you can specify: 
