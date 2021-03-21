@@ -96,7 +96,7 @@ The downside is that this relies on immediate finalization of the class. If you 
 - ~pick-in-direct-slots~: as ~pick-in-direct-slot~ but for many slots.
 - ~remove-from-direct-slot~ given an option key, removes it from a slot definition.
 
-See their docstrings for details.
+See the docstrings for details.
 
 ** Code Guidelines
 
