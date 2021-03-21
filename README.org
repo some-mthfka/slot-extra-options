@@ -2,7 +2,7 @@
 
 * slot-extra-options
 
-This library lets you build a metaclass which in turn lets you specify extra slot options in its classes. Options may be easily inspected and custom inheritence may be set up. Metaobject Protocol (MOP) is used for the implementation - through [[https://github.com/pcostanza/closer-mop][closer-mop]].
+This library lets you build a metaclass which in turn lets you specify extra slot options in its classes. Options may be easily inspected and custom inheritence may be set up. Metaobject Protocol (MOP) is used for the implementation - through [[https://github.com/pcostanza/closer-mop][closer-mop]]. Some convenience function for processing slot options are also available.
 
 Possible use case: you want to automatically set up some definitions based on some slots, but you want to have control over it right in the class definition (check out [[*Macrobuilding][Macrobuilding]] below).
 
@@ -17,7 +17,9 @@ So, the first step is to define the metaclass and describe what options you want
      (validates :coalescence bound-only-once
                 :type boolean)))
 #+END_SRC
- 
+
+NOTE: if you plan on instantiating objects of the metaclass in the same file you define that metaclass, ensure to wrap the metaclass definition in an ~eval-always~ macro (part of [[https://github.com/ruricolist/serapeum][serapeum]]), otherwise you will get errors when compiling the file.
+
 For each option, other than its name, you can specify: 
 - ~type~, 
 - ~initform~ (if not set, the option's value will be unbound, as expected) and
@@ -84,7 +86,17 @@ Now, if you want to write a macro which defines a class and inspects it right aw
        (your-macro-that-inspects-the-class ,name)))
 #+END_SRC
 
-Alternatively, you can probably define an ~:after~ method for ~c2mop:finalize-inheritance~: sounds much cleaner (but this one I haven't tried yet).
+The downside is that this relies on immediate finalization of the class. If you don't want that for some reason, you could probably try defining an after method for ~c2mop:ensure-class-using-class~, but that doesn't work out in some cases.
+
+** Convenience functions
+
+~all-direct-slot-definitions~ yields all slot definitions from the class precedence list.
+~all-slot-readers~ / ~all-slot-writers~ use ~all-direct-slot-definitions~ to yield all readers/writers from the inheritence hierarchy.
+~pick-in-direct-slot~ given option key, finds all values in a slot definition.
+~pick-in-direct-slots~: as ~pick-in-direct-slot~ but for many slots.
+~remove-from-direct-slot~ given an option key, removes it from a slot definition.
+
+See their docstrings for details.
 
 ** Code Guidelines
 

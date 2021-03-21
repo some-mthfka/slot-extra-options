@@ -28,11 +28,13 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
       #:make-keyword
       #:symbolicate
       #:with-gensyms
+      #:mappend
       #:curry
       #:rcurry)
 
      (:import-from
       #:serapeum
+      #:batches
       #:fbind
       #:eval-always)
      
@@ -45,7 +47,12 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
       #:compute-effective-slot-definition
       #:direct-slot-definition-class
       #:effective-slot-definition-class
-      #:ensure-finalized)
+      #:ensure-finalized
+      #:class-direct-slots
+      #:class-precedence-list
+      #:slot-definition-name
+      #:slot-definition-readers
+      #:slot-definition-writers)
 
      (:import-from ; not everything is here
       #:iterate
@@ -78,6 +85,14 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
    #:coalescence
 
    ;; macros
-   #:def-extra-options-metaclass))
+   #:def-extra-options-metaclass
+
+   ;; convenience functions
+   #:all-direct-slot-definitions
+   #:all-slot-readers
+   #:all-slot-writers
+   #:pick-in-direct-slot
+   #:pick-in-direct-slots
+   #:remove-from-direct-slot))
 
 ;; (in-package :slot-extra-options)
