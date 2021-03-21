@@ -95,6 +95,7 @@ The downside is that this relies on immediate finalization of the class. If you 
 - ~pick-in-slot-def~ given option key, finds all values in a slot definition.
 - ~pick-in-slot-defs~: as ~pick-in-slot-def~ but for many slots.
 - ~remove-from-slot-def~ given an option key, removes it from a slot definition.
+- ~ensure-option-in-slot-def~ makes sure that a slot option is present in a slot definition and put it there (with a default) otherwise.
 
 See the docstrings for details.
 
