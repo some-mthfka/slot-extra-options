@@ -31,6 +31,8 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 
 ;; ** Extras -- not used in the project, just exported
 
+;; *** Working with direct slots
+
 (defun all-direct-slot-definitions (class slot-name)
   "Get all slot definition of SLOT-NAME in the precedence list of CLASS, ordered
 as they come in the precedence list.  CLASS must be finalized."
@@ -51,38 +53,48 @@ of CLASS.  CLASS must be finalized."
   (loop for slotd in (all-direct-slot-definitions class slot-name)
         appending (slot-definition-writers slotd)))
 
-(defun pick-in-direct-slot (direct-slot key)
+;; *** Working with slot definitions
+
+(defun pick-in-slot-def (slot-def key)
   "Return a list of all options specified by KEY in the slot definition
-DIRECT-SLOT, ordered as they come in there.  Example: (pick-in-direct-slot
+SLOT-DEF, ordered as they come in there.  Example: (pick-in-slot-def
 '(zulu :initform 0 :reader z0 :reader z1) :reader) => (z0 z1)."
   (mapcar #'second (remove-if-not (curry #'eql key)
-                                  (batches (rest direct-slot) 2)
+                                  (batches (rest slot-def) 2)
                                   :key #'first)))
 
-(defun pick-in-direct-slots (direct-slots key)
-  "Return a list of all options specified by KEY in DIRECT-SLOTS.  See
-`pick-in-direct-slot'."
-  (mappend (rcurry #'pick-in-direct-slot key) direct-slots))
+(defun pick-in-slot-defs (slot-defs key)
+  "Return a list of all options specified by KEY in SLOT-DEFS.  See
+`pick-in-slot-def'."
+  (mappend (rcurry #'pick-in-slot-def key) slot-defs))
 
-(defun remove-from-direct-slot (direct-slot &rest keys)
-  "Remove all options specified by KEY from slot definition DIRECT-SLOT."
-  (list* (first direct-slot)
+(defun remove-from-slot-def (slot-def &rest keys)
+  "Remove all options specified by KEY from slot definition SLOT-DEF."
+  (list* (first slot-def)
          (apply #'append (remove-if (rcurry #'member keys)
-                                    (batches (rest direct-slot) 2)
+                                    (batches (rest slot-def) 2)
                                     :key #'first))))
 
-;; (remove-from-direct-slot
+;; (remove-from-slot-def
 ;;  '(zulu :initform 0 :reader z0 :reader z1 :writer zw :reader z2)
 ;;  :reader :initform)
 
-(defun remove-from-direct-slots (direct-slots &rest keys)
-  "Remove all options specified by KEY from slot deifinitions DIRECT-SLOTS.  See
-`remove-from-direct-slot'."
-  (mapcar (lambda (x) (apply #'remove-from-direct-slot x keys))
-          direct-slots))
+(defun remove-from-slot-defs (slot-defs &rest keys)
+  "Remove all options specified by KEY from slot deifinitions SLOT-DEFS.  See
+`remove-from-slot-def'."
+  (mapcar (lambda (x) (apply #'remove-from-slot-def x keys))
+          slot-defs))
 
-;; (remove-from-direct-slots
+;; (remove-from-slot-defs
 ;;  '((zulu :initform 0 :reader z0 :reader z1 :writer zw :reader z2)
-;;    (zulu :initform 0 :reader z0 :reader z1 :writer zw :reader z2)
-;;    (zulu :initform 0 :reader z0 :reader z1 :writer zw :reader z2))
-;;  :reader :initform :writer :type)
+;;    (zulu :initform 0 :reader z0 :reader z1 :writer zw :writer zw2 :reader z2)
+;;    (zulu :initform 0 :reader z0 :reader z1 :reader z2))
+;;  :reader :initform :type)
+
+(defun ensure-option-in-slot-def (slot-def key &optional (default nil defaultp))
+  "Ensure that key is present in slot definition SLOT-DEF, and, if not, place it
+there with DEFAULT.  Or error if default is not supplied."
+  (cond ((pick-in-slot-def slot-def key) slot-def)
+        (defaultp (append slot-def (list key default)))
+        (t (error "Key ~a was not found in ~a and no default was specified."
+                  key slot-def))))

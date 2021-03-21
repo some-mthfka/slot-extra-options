@@ -91,8 +91,9 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
    #:all-direct-slot-definitions
    #:all-slot-readers
    #:all-slot-writers
-   #:pick-in-direct-slot
-   #:pick-in-direct-slots
-   #:remove-from-direct-slot))
+   #:pick-in-slot-def
+   #:pick-in-slot-defs
+   #:remove-from-slot-def
+   #:ensure-option-in-slot-def))
 
 ;; (in-package :slot-extra-options)
