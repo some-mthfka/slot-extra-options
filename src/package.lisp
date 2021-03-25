@@ -24,6 +24,7 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
      (:import-from
       #:alexandria
       #:flatten
+      #:when-let
       #:compose
       #:make-keyword
       #:symbolicate
@@ -36,7 +37,8 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
       #:serapeum
       #:batches
       #:fbind
-      #:eval-always)
+      #:eval-always
+      #:concat)
      
      (:import-from
       #:closer-mop
@@ -88,12 +90,25 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
    #:def-extra-options-metaclass
 
    ;; convenience functions
+   #:slot-exists-and-bound-p
+
+   #:find-slot
+   #:find-dslot
+
    #:all-direct-slot-definitions
    #:all-slot-readers
    #:all-slot-writers
+
    #:pick-in-slot-def
    #:pick-in-slot-defs
    #:remove-from-slot-def
-   #:ensure-option-in-slot-def))
+   #:ensure-option-in-slot-def
+
+   #:option-history-effective
+   #:option-history-direct
+   #:slot-option-effective-changed-p
+   #:slot-option-direct-changed-p
+
+   #:ensure-finalized-precedence))
 
 ;; (in-package :slot-extra-options)

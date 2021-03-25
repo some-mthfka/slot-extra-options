@@ -159,4 +159,26 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
        (fail (slot-definition-validates slot-b) 'unbound-slot)
        (true (slot-definition-validates slot-c))
        (true (slot-definition-validates slot-d))
-       (true (slot-definition-validates slot-e))))))
+       (true (slot-definition-validates slot-e))
+       ;; slot-option-<>-changed-p tests
+       (ensure-finalized-precedence (find-class 'class-d))
+       ;; unbound stays unbound -> nothing changes
+       (false (slot-option-direct-changed-p (find-class 'class-b)
+                                            'v 'replaces))
+       ;; unbound -> value is considered a change
+       (true (slot-option-direct-changed-p (find-class 'class-a)
+                                           'v 'subtracts))
+       (true (slot-option-effective-changed-p (find-class 'class-a)
+                                              'v 'subtracts))
+       (is equal '(t ((0 1 2 3 4 5 6 7) (1 2 3)))
+           (multiple-value-list
+            (slot-option-direct-changed-p (find-class 'class-c)
+                                          'v 'subtracts)))
+       (is equal '(t ((7 6 5 4 0) (1 2 3)))
+           (multiple-value-list
+            (slot-option-effective-changed-p (find-class 'class-c)
+                                             'v 'subtracts)))
+       (true (slot-option-direct-changed-p (find-class 'class-d)
+                                           'v 'subtracts))
+       (true (slot-option-effective-changed-p (find-class 'class-d)
+                                              'v 'subtracts))))))

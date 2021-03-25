@@ -90,12 +90,39 @@ The downside is that this relies on immediate finalization of the class. If you 
 
 ** Convenience functions
 
-- ~all-direct-slot-definitions~ yields all slot definitions from the class precedence list (which includes the class itself).
-- ~all-slot-readers~ / ~all-slot-writers~ use ~all-direct-slot-definitions~ to yield all readers/writers from the class precedence list.
-- ~pick-in-slot-def~ given option key, finds all values in a slot definition.
-- ~pick-in-slot-defs~: as ~pick-in-slot-def~ but for many slots.
-- ~remove-from-slot-def~ given an option key, removes it from a slot definition.
-- ~ensure-option-in-slot-def~ makes sure that a slot option is present in a slot definition and puts it there (with a default) otherwise.
+*** Slots 
+
+| function                            | purpose                                                                                       |
+|-------------------------------------+-----------------------------------------------------------------------------------------------|
+| ~slot-exists-and-bound-p~             | self-explanatory                                                                              |
+| ~find-slot~                           | find effective slot name in class/class-name                                                  |
+| ~find-dslot~                          | same as ~find-slot~, but for direct-slots                                                       |
+| ~all-direct-slot-definitions~         | yields all slot definitions from the class precedence list (which includes the class itself). |
+| ~all-slot-readers~ / ~all-slot-writers~ | use ~all-direct-slot-definitions~ to yield all readers/writers from the class precedence list.  |
+
+*** Slot definitions
+
+| function                  | purpose                                                                                                     |
+|---------------------------+-------------------------------------------------------------------------------------------------------------|
+| ~pick-in-slot-def~          | given option key, finds all values in a slot definition.                                                    |
+| ~pick-in-slot-defs~         | as ~pick-in-slot-def~ but for many slots.                                                                     |
+| ~remove-from-slot-def~      | given an option key, removes it from a slot definition.                                                     |
+| ~ensure-option-in-slot-def~ | makes sure that a slot option is present in a slot definition and puts it there (with a default) otherwise. |
+
+*** Option value history 
+
+| function                        | purpose                                                                       |
+|---------------------------------+-------------------------------------------------------------------------------|
+| ~option-history-effective~        | list of all bound options in the effective class slots of the precedence list |
+| ~option-history-direct~           | same as ~option-history-effective~, but for direct slots                        |
+| ~slot-option-effective-changed-p~ | see if the newest value is different using ~option-history-effective~           |
+| ~slot-option-direct-changed-p~    | same as ~slot-option-effective-changed-p~, but for direct slots                 |
+
+*** Finalization 
+
+| function                    | purpose                                                       |
+|-----------------------------+---------------------------------------------------------------|
+| ~ensure-finalized-precedence~ | ensures that all classes in the precedence list are finalized |
 
 See the docstrings for details.
 
