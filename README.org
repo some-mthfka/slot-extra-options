@@ -90,7 +90,9 @@ The downside is that this relies on immediate finalization of the class. If you 
 
 ** Convenience functions
 
-*** Slots 
+See the docstrings for details.
+
+*** Finding and Collecting Slots 
 
 | function                            | purpose                                                                                       |
 |-------------------------------------+-----------------------------------------------------------------------------------------------|
@@ -123,8 +125,6 @@ The downside is that this relies on immediate finalization of the class. If you 
 | function                    | purpose                                                       |
 |-----------------------------+---------------------------------------------------------------|
 | ~ensure-finalized-precedence~ | ensures that all classes in the precedence list are finalized |
-
-See the docstrings for details.
 
 ** Code Guidelines
 
