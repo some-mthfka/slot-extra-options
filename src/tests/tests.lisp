@@ -24,9 +24,16 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
 (in-package :slot-extra-options-tests)
 
 (defmacro test (name &body body)
-  `(progn (define-test ,name ,@body)
-          (eval-when (:execute)
-            (parachute:test ',name :report 'parachute:interactive))))
+  (with-gensyms (result extra)
+    `(progn (eval-when (:compile-toplevel :load-toplevel)
+              (define-test ,name ,@body))
+            (eval-when (:execute)
+              (multiple-value-bind (,result ,extra)
+                  (define-test+run ,name ,@body)
+                (if (eql :passed (parachute:status ,result))
+                    ,result
+                    (values (list :failed (length ,extra))
+                            (first ,extra))))))))
 
 (test metaclass-inheritence
   (def-extra-options-metaclass metaclass-a ()
@@ -163,22 +170,29 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
        ;; slot-option-<>-changed-p tests
        (ensure-finalized-precedence (find-class 'class-d))
        ;; unbound stays unbound -> nothing changes
-       (false (slot-option-direct-changed-p (find-class 'class-b)
-                                            'v 'replaces))
+       (true (slot-option-direct-changed-p
+              (find-class 'class-b) 'v 'replaces #'slot-definition-replaces))
+       (true (slot-option-effective-changed-p
+              (find-class 'class-b) 'v 'replaces #'slot-definition-replaces))
+       (false (slot-option-direct-changed-p
+               (find-class 'class-e) 'v 'replaces #'slot-definition-replaces))
+       (false (slot-option-effective-changed-p
+               (find-class 'class-e) 'v 'replaces #'slot-definition-replaces))
+       (true (slot-option-direct-changed-p ; :validates is nil by default
+              (find-class 'class-c) 'v 'validates #'slot-definition-validates))
+       (false (slot-option-effective-changed-p
+               (find-class 'class-c) 'v 'validates #'slot-definition-validates))
        ;; unbound -> value is considered a change
-       (true (slot-option-direct-changed-p (find-class 'class-a)
-                                           'v 'subtracts))
-       (true (slot-option-effective-changed-p (find-class 'class-a)
-                                              'v 'subtracts))
-       (is equal '(t ((0 1 2 3 4 5 6 7) (1 2 3)))
-           (multiple-value-list
-            (slot-option-direct-changed-p (find-class 'class-c)
-                                          'v 'subtracts)))
-       (is equal '(t ((7 6 5 4 0) (1 2 3)))
-           (multiple-value-list
-            (slot-option-effective-changed-p (find-class 'class-c)
-                                             'v 'subtracts)))
-       (true (slot-option-direct-changed-p (find-class 'class-d)
-                                           'v 'subtracts))
-       (true (slot-option-effective-changed-p (find-class 'class-d)
-                                              'v 'subtracts))))))
+       (true (slot-option-direct-changed-p
+              (find-class 'class-a) 'v 'subtracts #'slot-definition-subtracts))
+       (true (slot-option-effective-changed-p
+              (find-class 'class-a) 'v 'subtracts #'slot-definition-subtracts))
+       (true (slot-option-direct-changed-p
+              (find-class 'class-c) 'v 'subtracts #'slot-definition-subtracts))
+       (true (slot-option-effective-changed-p
+              (find-class 'class-c) 'v 'subtracts #'slot-definition-subtracts))
+       (true (slot-option-direct-changed-p
+              (find-class 'class-d) 'v 'subtracts #'slot-definition-subtracts))
+       (true
+        (slot-option-effective-changed-p
+         (find-class 'class-d) 'v 'subtracts 'slot-definition-subtracts))))))

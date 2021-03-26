@@ -113,12 +113,10 @@ See the docstrings for details.
 
 *** Option value history 
 
-| function                        | purpose                                                                       |
-|---------------------------------+-------------------------------------------------------------------------------|
-| ~option-history-effective~        | list of all bound options in the effective class slots of the precedence list |
-| ~option-history-direct~           | same as ~option-history-effective~, but for direct slots                        |
-| ~slot-option-effective-changed-p~ | see if the newest value is different using ~option-history-effective~           |
-| ~slot-option-direct-changed-p~    | same as ~slot-option-effective-changed-p~, but for direct slots                 |
+| function                        | purpose                                                             |
+|---------------------------------+---------------------------------------------------------------------|
+| ~slot-option-effective-changed-p~ | see if the newest value is different using ~option-history-effective~ |
+| ~slot-option-direct-changed-p~    | same as ~slot-option-effective-changed-p~, but for direct slots       |
 
 *** Finalization 
 

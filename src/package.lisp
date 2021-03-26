@@ -104,8 +104,6 @@ with slot-extra-options.  If not, see <https://www.gnu.org/licenses/>. |#
    #:remove-from-slot-def
    #:ensure-option-in-slot-def
 
-   #:option-history-effective
-   #:option-history-direct
    #:slot-option-effective-changed-p
    #:slot-option-direct-changed-p
 

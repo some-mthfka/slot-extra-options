@@ -108,49 +108,42 @@ there with DEFAULT.  Or error if default is not supplied."
                                       class-or-class-name))
                :key #'slot-definition-name)))
   (defun find-slot (slot-name class-or-class-name)
-    "Find effective slot named SLOT-NAME in class or class named
-CLASS-OR-CLASS-NAME."
+    "Find effective slot named SLOT-NAME in CLASS-OR-CLASS-NAME."
     (f #'class-slots slot-name class-or-class-name))
   (defun find-dslot (slot-name class-or-class-name)
-    "Find direct slot named SLOT-NAME in class or class named
-CLASS-OR-CLASS-NAME."
+    "Find direct slot named SLOT-NAME in CLASS-OR-CLASS-NAME."
     (f #'class-direct-slots slot-name class-or-class-name)))
 
-(defmacro def-option-history (name find-slot-f kind)
-  `(defun ,name (class slot-name option-name)
-     ,(concat "Return all previous option OPTION-NAME values according to
-the " kind " slots of classes `class-precedence-list' (includes CLASS itself) of
-SLOT-NAME.  Classes that don't have the SLOT-NAME or slots without OPTION-NAME
-or with unbound OPTION-NAME are ommited.")
-     (mapcar (let ((*package* (symbol-package option-name)))
-               (symbolicate 'slot-definition- option-name))
-             (remove-if-not
-              (lambda (x) (and x (slot-exists-and-bound-p x option-name)))
-              (mapcar (curry #',find-slot-f slot-name)
-                      (class-precedence-list class))))))
+(defmacro def-slot-option-changed-p (name find-slot-f spec)
+  `(defun ,name (class slot-name option-name option-accessor
+                 &key (eq-comp #'equal))
+     ,(concat "Find the first class in the `rest' of `class-precedence-list'
+where SLOT-NAME exists, and then, if option OPTION-NAME exists, compare it with
+the option OPTION-NAME of SLOT-NAME of CLASS using equality predicate EQ-COMP
+(if both are unbound, nil is returned). If option doesn't not exist, or there
+are no SLOT-NAME slots, return t. In this version of the function, the " spec)
+     (let* ((current (,find-slot-f slot-name class)))
+       (unless (and current (slot-exists-p current option-name))
+         (error "Slot ~a must exist and option ~a must exist in the slot."
+                slot-name option-name))
+       (itr (with boundp = (slot-boundp current option-name))
+            (with value = (if boundp (funcall option-accessor current)))
+            (for previous-class in (rest (class-precedence-list class)))
+            (when-let ((s (,find-slot-f slot-name previous-class)))
+              (leave (if (slot-exists-p s option-name)
+                         (if (slot-boundp s option-name)
+                             (not (funcall eq-comp value
+                                           (funcall option-accessor s)))
+                             boundp) ; option is now bound (maybe)
+                         (finish)))) ; option now exists
+            (finally (return t)))))) ; option now exists
 
-(def-option-history option-history-effective find-slot "effective")
-(def-option-history option-history-direct find-dslot "direct")
+(def-slot-option-changed-p slot-option-effective-changed-p find-slot
+  "effective slots are examined. Please, ensure that all classes are finalized
+before calling!")
 
-(defmacro def-slot-option-changed-p (name option-history-f kind)
-  `(defun ,name (class slot-name option-name &key (eq-comp #'equal))
-     ,(concat "See if the previous option value OPTION-NAME of SLOT-NAME has
-changed in the `class-precedence-list' of CLASS using equality comparison COMP,
-looking through the " kind " Depending on which values are bound, new value and
-previous value may be returned in the list as the second value.  If the slot
-option is bound for the first time, it's considered to be a change as well.")
-     (when-let ((history (,option-history-f class slot-name option-name)))
-       (values (if (null (rest history))
-                   t
-                   (not (funcall eq-comp (first history) (second history))))
-               history))))
-
-(def-slot-option-changed-p slot-option-effective-changed-p
-    option-history-effective
-    "effective. Please, ensure that all classes are finalized before calling!")
-
-(def-slot-option-changed-p slot-option-direct-changed-p
-    option-history-direct "direct slots.")
+(def-slot-option-changed-p slot-option-direct-changed-p find-dslot
+  "direct slots are examined.")
 
 ;; *** Finalization
 
