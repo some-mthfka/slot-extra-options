@@ -111,12 +111,12 @@ See the docstrings for details.
 | ~remove-from-slot-def~      | given an option key, removes it from a slot definition.                                                     |
 | ~ensure-option-in-slot-def~ | makes sure that a slot option is present in a slot definition and puts it there (with a default) otherwise. |
 
-*** Option value history 
+*** Change detection
 
-| function                        | purpose                                                             |
-|---------------------------------+---------------------------------------------------------------------|
-| ~slot-option-effective-changed-p~ | see if the newest value is different using ~option-history-effective~ |
-| ~slot-option-direct-changed-p~    | same as ~slot-option-effective-changed-p~, but for direct slots       |
+| function                        | purpose                                                                                                                                                           |
+|---------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ~slot-option-effective-changed-p~ | see if the newest state of option changed, useful to see if it's necessary to, say, define a new method or if the inherited one is sufficient (see the docstring) |
+| ~slot-option-direct-changed-p~    | same as ~slot-option-effective-changed-p~, but for direct slots                                                                                                     |
 
 *** Finalization 
 
